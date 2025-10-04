@@ -5,7 +5,7 @@ services:
     # restart: unless-stopped
     build: . # do not include in delpoyment version
     ports:
-      - :80006525
+      - 8000:6525
     volumes:
       - ./database:/database
       - ./blogs:/blogs

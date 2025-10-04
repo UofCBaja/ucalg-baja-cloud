@@ -1,0 +1,17 @@
+
+
+
+- name: HERO-2020 HOODIES 
+  sizes_available: 
+    - XS
+    - S
+    - M
+    - L
+    - XL
+  price: 36
+  colours:
+    - Black
+    - White
+    - Grey
+  url_image:
+    - https://picsum.photos/200
