@@ -10,10 +10,16 @@ use crate::log_incoming;
 #[derive(Debug, Serialize, Deserialize)]
 struct MerchItem {
     name: String,
+    category: String,
     sizes_available: Vec<String>,
     price: f32,
     colours: Vec<String>,
+    description: String,
     url_image: Vec<String>,
+    additional_materials: String,
+    material: String,
+    cleaning: String,
+    size_guide_img_url: String,
 }
 
 #[get("/merch")]
