@@ -1,5 +1,5 @@
 # ----------- Build Stage -----------
-FROM rust:1.87-slim AS builder
+FROM rust:1.9-slim AS builder
 
 WORKDIR /ucalg_baja_cloud
     
@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/li
     
 # Copy source and build
 COPY . .
-RUN cargo build --release
+RUN cargo build --release  && strip target/release/ucalg-baja-cloud
     
 # ----------- Runtime Stage -----------
 FROM debian:bookworm-slim
@@ -17,7 +17,7 @@ FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y libssl-dev ca-certificates && rm -rf /var/lib/apt/lists/*
     
 WORKDIR /ucalg_baja_cloud
-COPY --from=builder /ucalg_baja_cloud/target/release/ucalg_baja_cloud .
+COPY --from=builder /ucalg_baja_cloud/target/release/ucalg-baja-cloud .
     
 EXPOSE 8000
-CMD ["./ucalgarybaja.ca"]
+CMD ["./ucalg-baja-cloud"]
