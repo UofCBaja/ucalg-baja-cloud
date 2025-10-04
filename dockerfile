@@ -1,5 +1,5 @@
 # ----------- Build Stage -----------
-FROM rust:1.9-slim AS builder
+FROM rust:slim AS builder
 
 WORKDIR /ucalg_baja_cloud
     
