@@ -1,0 +1,11 @@
+services:
+  bajacloud:
+    container_name: ucalg-baja-cloud
+    image: darkicewolf50/ucalg-baja-cloud:latest
+    # restart: unless-stopped
+    build: . # do not include in delpoyment version
+    ports:
+      - :80006525
+    volumes:
+      - ./database:/database
+      - ./blogs:/blogs
