@@ -4,6 +4,7 @@ use actix_web::{HttpRequest, Responder, get, web};
 use serde_json::json;
 
 pub mod merch_shop;
+pub mod sponsors;
 
 /// Logs out the request to the application, with method, and path it took to get there
 ///
