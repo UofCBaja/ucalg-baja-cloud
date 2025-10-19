@@ -24,10 +24,4 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Doc Tests
-        run: cargo test --doc
-      
-
-
-
-      
-      
+        run: cargo test --doc --no-fail-fast --quiet
