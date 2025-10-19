@@ -1,23 +1,20 @@
 # ----------- Build Stage -----------
-FROM rust:1.87-slim AS builder
+FROM rust:alpine AS builder
 
-WORKDIR /darkicewolf50_cloud
+WORKDIR /ucalg-baja-cloud
     
 # Install build dependencies
-RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache pkgconfig musl-dev
     
 # Copy source and build
 COPY . .
 RUN cargo build --release
     
 # ----------- Runtime Stage -----------
-FROM debian:bookworm-slim
+FROM alpine:latest
     
-# Install runtime dependencies (e.g., for OpenSSL if needed)
-RUN apt-get update && apt-get install -y libssl-dev ca-certificates && rm -rf /var/lib/apt/lists/*
+WORKDIR /ucalg-baja-cloud
+COPY --from=builder /ucalg-baja-cloud/target/release/ucalg-baja-cloud .
     
-WORKDIR /darkicewolf50_cloud
-COPY --from=builder /darkicewolf50_cloud/target/release/darkicewolf50_cloud .
-    
-EXPOSE 8000
-CMD ["./ucalgarybaja.ca"]
+EXPOSE 6525
+CMD ["./ucalg-baja-cloud"]

@@ -7,5 +7,4 @@ services:
     ports:
       - 8000:6525
     volumes:
-      - ./database:/database
-      - ./blogs:/blogs
+      - ./Database:./Database
