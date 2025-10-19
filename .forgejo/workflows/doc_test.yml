@@ -23,5 +23,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
+      - name: Check
+        run: cargo check
+
       - name: Doc Tests
         run: cargo test --doc --no-fail-fast --quiet
