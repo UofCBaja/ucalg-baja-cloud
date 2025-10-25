@@ -1,20 +1,18 @@
-use std::collections::HashMap;
-
-use actix_web::{Responder, get, web};
+use actix_web::{Responder, get, post, web};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use umya_spreadsheet::{CellRawValue, reader, writer};
+use umya_spreadsheet::{reader, writer};
 use uuid::Uuid;
 
 use crate::log_incoming;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct OrderUserInfo {
     order_id: Option<String>,
-    uofc_email: String,
-    phone: String,
+    email: String,
+    phone: Option<String>,
     name: String,
-    sub_team: String,
+    sub_team: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -26,105 +24,140 @@ struct OrderItem {
     price: f32,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OrderRequest {
-    pub user: OrderUserInfo,
-    pub items: Vec<OrderItem>,
+    user: OrderUserInfo,
+    items: Vec<OrderItem>,
 }
 
-#[get("/recieve_order/{order_request}")]
+#[post("/recieve_order")]
 pub async fn recieve_order(order_request: web::Json<OrderRequest>) -> impl Responder {
-    log_incoming("GET", "/shop/recieve_order");
+    log_incoming("POST", "/shop/recieve_order");
 
-    let fake_order_id = Uuid::new_v4().to_string();
+    // println!("{:?}", order_request);
 
-    let fake_order = vec![
-        OrderItem {
-            order_id: Some(fake_order_id.clone()),
-            item_id: "HERO-2020 HOODIES".to_string(),
-            size: Some("M".to_string()),
-            quantity: 1,
-            price: 36.01,
-        },
-        OrderItem {
-            order_id: Some(fake_order_id.clone()),
-            item_id: "HERO-2020 HOODIES".to_string(),
-            size: Some("XL".to_string()),
-            quantity: 1,
-            price: 36.01,
-        },
-    ];
+    // let fake_order_id = Uuid::new_v4().to_string();
+
+    // let fake_order = OrderRequest {
+    //     user: OrderUserInfo {
+    //         order_id: Some(fake_order_id.clone()),
+    //         uofc_email: "brock.tomlinson@ucalgary.ca".to_string(),
+    //         phone: "2509466196".to_string(),
+    //         name: "Brock".to_string(),
+    //         sub_team: Some("Software".to_string()),
+    //     },
+    //     items: vec![
+    //         OrderItem {
+    //             order_id: Some(fake_order_id.clone()),
+    //             item_id: "HERO-2020 HOODIES".to_string(),
+    //             size: Some("M".to_string()),
+    //             quantity: 1,
+    //             price: 36.01,
+    //         },
+    //         OrderItem {
+    //             order_id: Some(fake_order_id.clone()),
+    //             item_id: "HERO-2020 HOODIES".to_string(),
+    //             size: Some("XL".to_string()),
+    //             quantity: 1,
+    //             price: 36.01,
+    //         },
+    //     ],
+    // };
+
+    // println!("{:?}", fake_order);
 
     let path = std::path::Path::new("./Database/Orders.xlsx");
     let mut book = reader::xlsx::lazy_read(path).unwrap();
 
+    let customer_sheet = book.get_sheet_by_name_mut("customer_info").unwrap();
+    // Finds "newest row"
+    let customer_row_insert = customer_sheet.get_highest_row() + 1;
+    // User Info Part of incoming order
+    let customer_info = order_request.user.clone();
+
+    // order id
+    customer_sheet
+        .get_cell_mut(format!("A{}", customer_row_insert))
+        .set_value(customer_info.order_id.clone().unwrap_or_default());
+
+    // email
+    customer_sheet
+        .get_cell_mut(format!("B{}", customer_row_insert))
+        .set_value(customer_info.email.clone());
+    // phone
+    customer_sheet
+        .get_cell_mut(format!("C{}", customer_row_insert))
+        .set_value_string(customer_info.phone.clone().unwrap_or_default());
+    // name
+    customer_sheet
+        .get_cell_mut(format!("D{}", customer_row_insert))
+        .set_value(customer_info.name.clone());
+    // subteam
+    customer_sheet
+        .get_cell_mut(format!("E{}", customer_row_insert))
+        .set_value(customer_info.sub_team.clone().unwrap_or_default());
+
     let orders_sheet = book.get_sheet_by_name_mut("orders").unwrap();
+    // Finds "newest row"
+    let mut order_row_insert = orders_sheet.get_highest_row() + 1;
+    // User Info Part of incoming order
+    let orders = order_request.items.clone();
 
-    let mut row_to_insert = orders_sheet.get_highest_row() + 1;
-    // accomplished by using order Id, finds the next row to insert into
-    // let mut row_to_insert = orders_sheet
-    //     .get_cell_value_by_range("A2:A")
-    //     .iter()
-    //     .filter_map(|cell_item| match cell_item.get_raw_value() {
-    //         CellRawValue::Empty => None,
-    //         _ => Some(()),
-    //     })
-    //     .count()
-    //     + 2;
-
-    let orders = fake_order;
-
+    // Writes all orders in the vec to the sheet
     for order in &orders {
         // order id
         orders_sheet
-            .get_cell_mut(format!("A{}", row_to_insert))
+            .get_cell_mut(format!("A{}", order_row_insert))
             .set_value(order.order_id.clone().unwrap_or_default());
 
         // item id
         orders_sheet
-            .get_cell_mut(format!("B{}", row_to_insert))
+            .get_cell_mut(format!("B{}", order_row_insert))
             .set_value(order.item_id.clone());
 
         // size
         orders_sheet
-            .get_cell_mut(format!("C{}", row_to_insert))
+            .get_cell_mut(format!("C{}", order_row_insert))
             .set_value(order.size.clone().unwrap_or_else(|| "".to_string()));
 
         // quantity
         orders_sheet
-            .get_cell_mut(format!("D{}", row_to_insert))
+            .get_cell_mut(format!("D{}", order_row_insert))
             .set_value_number(order.quantity);
 
         // price
         orders_sheet
-            .get_cell_mut(format!("E{}", row_to_insert))
+            .get_cell_mut(format!("E{}", order_row_insert))
             .set_value_number(order.price);
 
-        row_to_insert += 1;
+        order_row_insert += 1;
     }
+
     // --- save workbook ---
     writer::xlsx::write(&book, path).unwrap();
 
-    web::Json(json!(
-        {
-            "body": {
-                "message": [
-                    {
-                        "order_id": orders.get(0).unwrap().order_id,
-                        "item_id": orders.get(0).unwrap().item_id,
-                        "size": orders.get(0).unwrap().size,
-                        "quantity": orders.get(0).unwrap().quantity,
-                        "price": orders.get(0).unwrap().price
-                    },
-                    {
-                        "order_id": orders.get(1).unwrap().order_id,
-                        "item_id": orders.get(1).unwrap().item_id,
-                        "size": orders.get(1).unwrap().size,
-                        "quantity": orders.get(1).unwrap().quantity,
-                        "price": orders.get(1).unwrap().price
-                    }
-                ]
-            }
-        }
-    ))
+    web::Json(order_request)
+
+    // web::Json(json!(
+    //     {
+    //         "body": {
+    //             "message": [
+    //                 {
+    //                     "order_id": orders.get(0).unwrap().order_id,
+    //                     "item_id": orders.get(0).unwrap().item_id,
+    //                     "size": orders.get(0).unwrap().size,
+    //                     "quantity": orders.get(0).unwrap().quantity,
+    //                     "price": orders.get(0).unwrap().price
+    //                 },
+    //                 {
+    //                     "order_id": orders.get(1).unwrap().order_id,
+    //                     "item_id": orders.get(1).unwrap().item_id,
+    //                     "size": orders.get(1).unwrap().size,
+    //                     "quantity": orders.get(1).unwrap().quantity,
+    //                     "price": orders.get(1).unwrap().price
+    //                 }
+    //             ]
+    //         }
+    //     }
+    // ))
 }
