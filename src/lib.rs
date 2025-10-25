@@ -65,6 +65,7 @@ pub fn log_incoming(method: &'static str, path_source: &str) {
 /// # Author (s)
 ///
 /// - Brock <brock@darkicewolf50.dev>
+/// 
 /// semi-permanent email, do not need to respond but try to be a good alumni
 
 #[get("/")]
