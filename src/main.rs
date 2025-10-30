@@ -1,9 +1,9 @@
 use actix_cors::Cors;
 use actix_web::{App, HttpServer, web};
 
-use ucalg_baja_cloud::hello;
+use darkicewolf50_actix_setup::health_check;
 use ucalg_baja_cloud::merch_shop;
-use ucalg_baja_cloud::sponsors::get_sponors;
+use ucalg_baja_cloud::sponsors::get_sponsors;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -20,8 +20,8 @@ async fn main() -> std::io::Result<()> {
                     .allow_any_header(), // Optionally enable sending cookies, etc.
                                          //.supports_credentials()
             )
-            .service(hello)
-            .service(get_sponors)
+            .service(health_check)
+            .service(get_sponsors)
             .service(
                 web::scope("/shop")
                     .service(merch_shop::recieve_order)

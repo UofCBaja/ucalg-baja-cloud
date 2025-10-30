@@ -1,9 +1,8 @@
 use actix_web::{Responder, get, web};
+use darkicewolf50_actix_setup::log_incoming;
 use serde::{Deserialize, Serialize};
 use serde_yaml_bw;
 use std::{collections::HashMap, fs};
-
-use crate::log_incoming;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Sponsor {
@@ -18,7 +17,7 @@ struct Sponsor {
 }
 
 #[get("/sponsors")]
-pub async fn get_sponors() -> impl Responder {
+pub async fn get_sponsors() -> impl Responder {
     log_incoming("GET", "/sponsors");
 
     let yaml = fs::read_to_string("./Database/sponsorship.yaml").unwrap_or_else(|_| "".to_string());
