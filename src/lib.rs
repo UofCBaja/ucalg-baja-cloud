@@ -4,6 +4,7 @@ use actix_web::{HttpRequest, Responder, get, web};
 use serde_json::json;
 
 pub mod merch_shop;
+pub mod xl_init;
 
 /// Logs out the request to the application, with method, and path it took to get there
 ///
@@ -65,7 +66,7 @@ pub fn log_incoming(method: &'static str, path_source: &str) {
 /// # Author (s)
 ///
 /// - Brock <brock@darkicewolf50.dev>
-/// 
+///
 /// semi-permanent email, do not need to respond but try to be a good alumni
 
 #[get("/")]

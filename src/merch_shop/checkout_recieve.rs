@@ -7,7 +7,7 @@ use uuid::Uuid;
 use crate::log_incoming;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct OrderUserInfo {
+struct CustomerInfo {
     order_id: Option<String>,
     email: String,
     phone: Option<String>,
@@ -26,8 +26,8 @@ struct OrderItem {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OrderRequest {
-    user: OrderUserInfo,
-    items: Vec<OrderItem>,
+    customer_info: CustomerInfo,
+    cart_items: Vec<OrderItem>,
 }
 
 #[post("/recieve_order")]
@@ -39,14 +39,14 @@ pub async fn recieve_order(order_request: web::Json<OrderRequest>) -> impl Respo
     // let fake_order_id = Uuid::new_v4().to_string();
 
     // let fake_order = OrderRequest {
-    //     user: OrderUserInfo {
+    //     customer_info: OrderUserInfo {
     //         order_id: Some(fake_order_id.clone()),
     //         uofc_email: "brock.tomlinson@ucalgary.ca".to_string(),
     //         phone: "2509466196".to_string(),
     //         name: "Brock".to_string(),
     //         sub_team: Some("Software".to_string()),
     //     },
-    //     items: vec![
+    //     cart_items: vec![
     //         OrderItem {
     //             order_id: Some(fake_order_id.clone()),
     //             item_id: "HERO-2020 HOODIES".to_string(),
@@ -72,8 +72,8 @@ pub async fn recieve_order(order_request: web::Json<OrderRequest>) -> impl Respo
     let customer_sheet = book.get_sheet_by_name_mut("customer_info").unwrap();
     // Finds "newest row"
     let customer_row_insert = customer_sheet.get_highest_row() + 1;
-    // User Info Part of incoming order
-    let customer_info = order_request.user.clone();
+    // Customer Info Part of incoming order
+    let customer_info = order_request.customer_info.clone();
 
     // order id
     customer_sheet
@@ -100,8 +100,8 @@ pub async fn recieve_order(order_request: web::Json<OrderRequest>) -> impl Respo
     let orders_sheet = book.get_sheet_by_name_mut("orders").unwrap();
     // Finds "newest row"
     let mut order_row_insert = orders_sheet.get_highest_row() + 1;
-    // User Info Part of incoming order
-    let orders = order_request.items.clone();
+    // Customer Info Part of incoming order
+    let orders = order_request.cart_items.clone();
 
     // Writes all orders in the vec to the sheet
     for order in &orders {
