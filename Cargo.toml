@@ -11,6 +11,12 @@ serde_json = "1.0.145"
 serde_yaml_bw = "2.4.1"
 uuid = { version = "1.18.1", features = ["v4"] }
 umya-spreadsheet = "2.3.3"
+darkicewolf50-actix-setup = { version = "0.1.4", git = "https://forge.ucalgarybaja.ca/darkicewolf50/darkicewolf50-actix-setup.git", features = [
+    "full"
+] }
+utoipa = { version = "5.4.0", features = ["actix_extras"] }
+utoipa-swagger-ui = { version = "9", features = ["actix-web", "reqwest"] }
+utoipa-actix-web = "0.1.2"
 
 [profile.release]
 debug = false

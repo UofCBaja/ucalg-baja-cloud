@@ -1,10 +1,11 @@
-use actix_web::{Responder, get, post, web};
+use actix_web::{HttpResponse, Responder, get, post, web};
+use darkicewolf50_actix_setup::log_incoming;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use umya_spreadsheet::{reader, writer};
 use uuid::Uuid;
 
-use crate::log_incoming;
+use crate::xl_init::{self, init_xl_doc};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct CustomerInfo {
@@ -28,6 +29,13 @@ struct OrderItem {
 pub struct OrderRequest {
     customer_info: CustomerInfo,
     cart_items: Vec<OrderItem>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OrderSuccess {
+    success: bool,
+    failure: Option<String>,
+    testing: Option<OrderRequest>,
 }
 
 #[post("/recieve_order")]
@@ -65,9 +73,17 @@ pub async fn recieve_order(order_request: web::Json<OrderRequest>) -> impl Respo
     // };
 
     // println!("{:?}", fake_order);
-
-    let path = std::path::Path::new("./Database/Orders.xlsx");
-    let mut book = reader::xlsx::lazy_read(path).unwrap();
+    let path = match init_xl_doc() {
+        Ok(p) => p,
+        Err(e) => {
+            return web::Json(OrderSuccess {
+                success: false,
+                failure: Some(e),
+                testing: None,
+            });
+        }
+    };
+    let mut book = reader::xlsx::lazy_read(&path).unwrap();
 
     let customer_sheet = book.get_sheet_by_name_mut("customer_info").unwrap();
     // Finds "newest row"
@@ -136,7 +152,11 @@ pub async fn recieve_order(order_request: web::Json<OrderRequest>) -> impl Respo
     // --- save workbook ---
     writer::xlsx::write(&book, path).unwrap();
 
-    web::Json(order_request)
+    web::Json(OrderSuccess {
+        success: true,
+        failure: None,
+        testing: Some(order_request.into_inner()),
+    })
 
     // web::Json(json!(
     //     {
