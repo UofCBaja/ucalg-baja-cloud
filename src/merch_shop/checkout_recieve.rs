@@ -5,7 +5,7 @@ use serde_json::json;
 use umya_spreadsheet::{reader, writer};
 use uuid::Uuid;
 
-use crate::xl_init::{self, init_xl_doc};
+use crate::xl_init::init_xl_doc;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct CustomerInfo {

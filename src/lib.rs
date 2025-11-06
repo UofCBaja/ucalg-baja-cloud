@@ -7,6 +7,8 @@ use utoipa::OpenApi;
 pub mod merch_shop;
 pub mod xl_init;
 
+pub mod database;
+
 #[derive(OpenApi)]
 #[openapi(paths(darkicewolf50_actix_setup::swagger_docs::health_check_swagger))]
 pub struct ApiDoc;
