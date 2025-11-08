@@ -1,15 +1,20 @@
+use std::sync::{Arc, Mutex};
+
 use actix_cors::Cors;
 use actix_web::{App, HttpServer, web};
 
 use ucalg_baja_cloud::ApiDoc;
+use ucalg_baja_cloud::database;
 use ucalg_baja_cloud::merch_shop;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    println!("Running on port 6526");
-    HttpServer::new(|| {
+    println!("Running on port http://localhost:6526");
+
+    let database = web::Data::new(Mutex::new(database::Database::new()));
+    HttpServer::new(move || {
         App::new()
             .wrap(
                 Cors::default()
@@ -21,6 +26,7 @@ async fn main() -> std::io::Result<()> {
                     .allow_any_header(), // Optionally enable sending cookies, etc.
                                          //.supports_credentials()
             )
+            .app_data(database.clone())
             .service(darkicewolf50_actix_setup::health_check_swagger)
             .service(
                 web::scope("/shop")

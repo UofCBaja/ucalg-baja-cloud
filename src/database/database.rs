@@ -6,7 +6,16 @@ pub struct Database {
 }
 
 impl Database {
-    pub fn create_connection_xl(&mut self) -> Result<(), String> {
+    pub fn new() -> Database {
+        let xl_path = Path::new("./Database/Merch.xlsx");
+
+        Database {
+            connection: Some(xl_path.into()),
+        }
+        .check_connection_created_xl()
+        .unwrap()
+    }
+    pub fn check_connection_created_xl(&mut self) -> Result<(), String> {
         let xl_path = Path::new("./Database/Merch.xlsx");
 
         if Path::exists(&xl_path) {
