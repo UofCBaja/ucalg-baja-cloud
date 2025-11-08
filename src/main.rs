@@ -1,7 +1,6 @@
-use std::sync::{Arc, Mutex};
-
 use actix_cors::Cors;
 use actix_web::{App, HttpServer, web};
+use tokio::sync::Mutex;
 
 use ucalg_baja_cloud::ApiDoc;
 use ucalg_baja_cloud::database;
@@ -14,6 +13,7 @@ async fn main() -> std::io::Result<()> {
     println!("Running on port http://localhost:6526");
 
     let database = web::Data::new(Mutex::new(database::Database::new()));
+
     HttpServer::new(move || {
         App::new()
             .wrap(
@@ -33,11 +33,10 @@ async fn main() -> std::io::Result<()> {
                     .service(merch_shop::recieve_order)
                     .service(merch_shop::get_merch),
             )
-            // accessable at /swagger-ui/
+            // accessable at /swagger/
             // swagger/OpenAPI docs
             .service(
-                SwaggerUi::new("/swagger-ui/{_:.*}")
-                    .url("/api-docs/openapi.json", ApiDoc::openapi()),
+                SwaggerUi::new("/swagger/{_:.*}").url("/api-docs/openapi.json", ApiDoc::openapi()),
             )
     })
     .bind(("0.0.0.0", 6526))?

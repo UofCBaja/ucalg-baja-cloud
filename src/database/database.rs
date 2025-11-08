@@ -2,24 +2,44 @@ use std::path::{Path, PathBuf};
 use umya_spreadsheet::writer;
 
 pub struct Database {
-    connection: Option<PathBuf>,
+    pub connection: Option<PathBuf>,
 }
 
 impl Database {
     pub fn new() -> Database {
         let xl_path = Path::new("./Database/Merch.xlsx");
 
-        Database {
+        let mut database = Database {
             connection: Some(xl_path.into()),
+        };
+
+        if !Path::exists(&xl_path) {
+            let _ = database.database_initialize_xl();
+
+            return database;
         }
-        .check_connection_created_xl()
-        .unwrap()
+
+        database
     }
-    pub fn check_connection_created_xl(&mut self) -> Result<(), String> {
+
+    pub fn check_path_xl(&mut self) -> Result<bool, String> {
         let xl_path = Path::new("./Database/Merch.xlsx");
 
         if Path::exists(&xl_path) {
             self.connection = Some(xl_path.into());
+            return Ok(true);
+        } else {
+            // Recreating Path
+            self.connection = Some(xl_path.into());
+            match self.database_initialize_xl() {
+                Ok(_) => return Ok(true),
+                Err(e) => return Err(e),
+            }
+        }
+    }
+
+    pub fn database_initialize_xl(&mut self) -> Result<(), String> {
+        if self.check_path_xl().unwrap() {
             return Ok(());
         }
 
@@ -50,13 +70,15 @@ impl Database {
         custmer_sheet.get_cell_mut("C1").set_value("Phone");
         custmer_sheet.get_cell_mut("D1").set_value("Name");
         custmer_sheet.get_cell_mut("E1").set_value("Subteam");
+        custmer_sheet
+            .get_cell_mut("F1")
+            .set_value("Shipping Details");
 
-        match writer::xlsx::write(&book, xl_path) {
+        match writer::xlsx::write(&book, self.connection.as_ref().unwrap().clone().as_path()) {
             Ok(_) => (),
             Err(_) => return Err("Cannot create xl sheet".to_string()),
         };
 
-        self.connection = Some(xl_path.into());
         Ok(())
     }
 }
