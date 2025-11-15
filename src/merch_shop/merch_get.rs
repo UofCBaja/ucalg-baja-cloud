@@ -6,19 +6,21 @@ use serde::{Deserialize, Serialize};
 // use serde_json::json;
 use serde_yaml_bw;
 
+use crate::{ArcString, ArcVec};
+
 #[derive(Debug, Serialize, Deserialize)]
 struct MerchItem {
-    name: String,
-    category: String,
-    sizes_available: Vec<String>,
+    name: ArcString,
+    category: ArcString,
+    sizes_available: ArcVec<ArcString>,
     price: f32,
-    colours: Vec<String>,
-    description: String,
-    url_image: Vec<String>,
-    additional_materials: String,
-    material: String,
-    cleaning: String,
-    size_guide_img_url: String,
+    colours: Vec<ArcString>,
+    description: ArcString,
+    url_image: ArcVec<ArcString>,
+    additional_materials: ArcString,
+    material: ArcString,
+    cleaning: ArcString,
+    size_guide_img_url: ArcString,
 }
 
 #[get("/merch")]
@@ -27,7 +29,9 @@ pub async fn get_merch() -> impl Responder {
 
     let yaml = fs::read_to_string("./Database/merch.yaml").unwrap_or_else(|_| "".to_string());
 
-    let yaml: Vec<MerchItem> = serde_yaml_bw::from_str(&yaml).unwrap_or_else(|_| vec![]);
+    let yaml: ArcVec<MerchItem> = serde_yaml_bw::from_str(&yaml)
+        .unwrap_or_else(|_| vec![])
+        .into();
 
     web::Json(yaml)
 }

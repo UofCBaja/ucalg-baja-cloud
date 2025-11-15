@@ -1,32 +1,30 @@
-use crate::database::Database;
+use crate::{ArcString, ArcVec, database::Database};
 use actix_web::{
-    HttpResponse, Responder, get, post,
+    Responder, post,
     web::{self, Data},
 };
 use darkicewolf50_actix_setup::log_incoming;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
+// use serde_json::json;
 use tokio::sync::Mutex;
-use umya_spreadsheet::{Spreadsheet, Worksheet, reader, writer};
-use uuid::Uuid;
-
-use crate::xl_init::init_xl_doc;
+use umya_spreadsheet::{Worksheet, reader, writer};
+// use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CustomerInfo {
-    order_id: Option<String>,
-    email: String,
-    phone: Option<String>,
-    name: String,
-    sub_team: Option<String>,
-    shipping_details: String,
+    order_id: Option<ArcString>,
+    email: ArcString,
+    phone: Option<ArcString>,
+    name: ArcString,
+    sub_team: Option<ArcString>,
+    shipping_details: ArcString,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OrderItem {
-    order_id: Option<String>,
-    item_id: String,
-    size: Option<String>,
+    order_id: Option<ArcString>,
+    item_id: ArcString,
+    size: Option<ArcString>,
     quantity: u8,
     price: f32,
 }
@@ -34,13 +32,13 @@ pub struct OrderItem {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OrderRequest {
     customer_info: CustomerInfo,
-    cart_items: Vec<OrderItem>,
+    cart_items: ArcVec<OrderItem>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct OrderSuccess {
     success: bool,
-    failure: Option<String>,
+    failure: Option<ArcString>,
     testing: Option<OrderRequest>,
 }
 
@@ -58,7 +56,7 @@ pub async fn recieve_order(
         Err(e) => {
             return web::Json(OrderSuccess {
                 success: false,
-                failure: Some(e),
+                failure: Some(e.into()),
                 testing: None,
             });
         }
@@ -74,7 +72,7 @@ pub async fn recieve_order(
     let orders = order_request.cart_items.clone();
 
     // Writes all orders in the vec to the sheet
-    for order in &orders {
+    for order in orders.as_ref().iter() {
         order_row_insert += database.write_order(order, orders_sheet, &order_row_insert);
     }
 
@@ -86,29 +84,6 @@ pub async fn recieve_order(
         failure: None,
         testing: Some(order_request.into_inner()),
     })
-
-    // web::Json(json!(
-    //     {
-    //         "body": {
-    //             "message": [
-    //                 {
-    //                     "order_id": orders.get(0).unwrap().order_id,
-    //                     "item_id": orders.get(0).unwrap().item_id,
-    //                     "size": orders.get(0).unwrap().size,
-    //                     "quantity": orders.get(0).unwrap().quantity,
-    //                     "price": orders.get(0).unwrap().price
-    //                 },
-    //                 {
-    //                     "order_id": orders.get(1).unwrap().order_id,
-    //                     "item_id": orders.get(1).unwrap().item_id,
-    //                     "size": orders.get(1).unwrap().size,
-    //                     "quantity": orders.get(1).unwrap().quantity,
-    //                     "price": orders.get(1).unwrap().price
-    //                 }
-    //             ]
-    //         }
-    //     }
-    // ))
 }
 
 impl Database {
@@ -121,17 +96,29 @@ impl Database {
         // order id
         orders_sheet
             .get_cell_mut(format!("A{}", row_insert))
-            .set_value(order.order_id.clone().unwrap_or_default());
+            .set_value(
+                order
+                    .order_id
+                    .as_ref()
+                    .map(|s| s.to_string())
+                    .unwrap_or_default(),
+            );
 
         // item id
         orders_sheet
             .get_cell_mut(format!("B{}", row_insert))
-            .set_value(order.item_id.clone());
+            .set_value_string(order.item_id.as_ref().to_string());
 
         // size
         orders_sheet
             .get_cell_mut(format!("C{}", row_insert))
-            .set_value(order.size.clone().unwrap_or_else(|| "".to_string()));
+            .set_value(
+                order
+                    .size
+                    .as_ref()
+                    .map(|s| s.to_string())
+                    .unwrap_or_default(),
+            );
 
         // quantity
         orders_sheet
@@ -157,28 +144,46 @@ impl Database {
         // order id
         customer_sheet
             .get_cell_mut(format!("A{}", customer_row_insert))
-            .set_value(customer_info.order_id.clone().unwrap_or_default());
+            .set_value(
+                customer_info
+                    .order_id
+                    .as_ref()
+                    .map(|s| s.to_string())
+                    .unwrap_or_default(),
+            );
 
         // email
         customer_sheet
             .get_cell_mut(format!("B{}", customer_row_insert))
-            .set_value(customer_info.email.clone());
+            .set_value(customer_info.email.as_ref().to_string());
         // phone
         customer_sheet
             .get_cell_mut(format!("C{}", customer_row_insert))
-            .set_value_string(customer_info.phone.clone().unwrap_or_default());
+            .set_value_string(
+                customer_info
+                    .phone
+                    .as_ref()
+                    .map(|s| s.to_string())
+                    .unwrap_or_default(),
+            );
         // name
         customer_sheet
             .get_cell_mut(format!("D{}", customer_row_insert))
-            .set_value(customer_info.name.clone());
+            .set_value_string(customer_info.name.to_string());
         // subteam
         customer_sheet
             .get_cell_mut(format!("E{}", customer_row_insert))
-            .set_value(customer_info.sub_team.clone().unwrap_or_default());
+            .set_value_string(
+                customer_info
+                    .sub_team
+                    .as_ref()
+                    .map(|s| s.to_string())
+                    .unwrap_or_default(),
+            );
 
         customer_sheet
             .get_cell_mut(format!("F{}", customer_row_insert))
-            .set_value(customer_info.shipping_details.clone());
+            .set_value_string(customer_info.shipping_details.as_ref().to_string());
 
         writer::xlsx::write(&book, self.connection.as_ref().unwrap().as_path()).unwrap();
     }
