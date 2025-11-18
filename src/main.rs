@@ -10,7 +10,16 @@ use utoipa_swagger_ui::SwaggerUi;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    println!("Running on port http://localhost:6526");
+    #[cfg(debug_assertions)]
+    {
+        println!("Debug mode active!");
+        println!("Running on port http://localhost:6526");
+    }
+
+    #[cfg(not(debug_assertions))]
+    {
+        println!("Running on port 6526");
+    }
 
     let database = web::Data::new(Mutex::new(database::Database::new()));
 

@@ -1,7 +1,7 @@
 use std::fs;
 
-use actix_web::{Responder, get, web};
-use darkicewolf50_actix_setup::log_incoming;
+use actix_web::{HttpRequest, Responder, get, web};
+use darkicewolf50_actix_setup::log_incoming_w_x;
 use serde::{Deserialize, Serialize};
 // use serde_json::json;
 use serde_yaml_bw;
@@ -24,8 +24,8 @@ struct MerchItem {
 }
 
 #[get("/merch")]
-pub async fn get_merch() -> impl Responder {
-    log_incoming("GET", "/shop/merch");
+pub async fn get_merch(req: HttpRequest) -> impl Responder {
+    log_incoming_w_x("GET", "/shop/merch", req);
 
     let yaml = fs::read_to_string("./Database/merch.yaml").unwrap_or_else(|_| "".to_string());
 

@@ -1,9 +1,9 @@
 use crate::{ArcString, ArcVec, database::Database};
 use actix_web::{
-    Responder, post,
+    HttpRequest, Responder, post,
     web::{self, Data},
 };
-use darkicewolf50_actix_setup::log_incoming;
+use darkicewolf50_actix_setup::log_incoming_w_x;
 use serde::{Deserialize, Serialize};
 // use serde_json::json;
 use tokio::sync::Mutex;
@@ -46,8 +46,9 @@ pub struct OrderSuccess {
 pub async fn recieve_order(
     data_state: Data<Mutex<Database>>,
     order_request: web::Json<OrderRequest>,
+    req: HttpRequest,
 ) -> impl Responder {
-    log_incoming("POST", "/shop/recieve_order");
+    log_incoming_w_x("POST", "/shop/recieve_order", req);
 
     let mut database = data_state.lock().await;
 
@@ -76,7 +77,7 @@ pub async fn recieve_order(
         order_row_insert += database.write_order(order, orders_sheet, &order_row_insert);
     }
 
-    // --- save workbook ---
+    // save to workbook
     writer::xlsx::write(&book, &database.connection.as_ref().unwrap()).unwrap();
 
     web::Json(OrderSuccess {
@@ -181,10 +182,12 @@ impl Database {
                     .unwrap_or_default(),
             );
 
+        // shipping
         customer_sheet
             .get_cell_mut(format!("F{}", customer_row_insert))
             .set_value_string(customer_info.shipping_details.as_ref().to_string());
 
+        // save to workbook
         writer::xlsx::write(&book, self.connection.as_ref().unwrap().as_path()).unwrap();
     }
 }
