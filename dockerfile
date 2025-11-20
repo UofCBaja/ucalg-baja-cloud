@@ -1,23 +1,35 @@
 # ----------- Build Stage -----------
-FROM rust:slim AS builder
+FROM rust:alpine AS builder
 
 WORKDIR /ucalg_baja_cloud
-    
+
 # Install build dependencies
-RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache \
+    pkgconfig \
+    musl-dev \
+    openssl-dev \
+    bash \
+    make \
+    g++ \
+    cmake \
+    libffi-dev
     
 # Copy source and build
 COPY . .
 RUN cargo build --release  && strip target/release/ucalg-baja-cloud
     
 # ----------- Runtime Stage -----------
-FROM debian:bookworm-slim
+FROM alpine:latest
     
-# Install runtime dependencies (e.g., for OpenSSL if needed)
-RUN apt-get update && apt-get install -y libssl-dev ca-certificates && rm -rf /var/lib/apt/lists/*
+# Install runtime dependencies
+RUN apk add --no-cache \
+    bash \
+    openssl \
+    musl \
+    libffi
     
 WORKDIR /ucalg_baja_cloud
 COPY --from=builder /ucalg_baja_cloud/target/release/ucalg-baja-cloud .
     
-EXPOSE 8000
+EXPOSE 6525
 CMD ["./ucalg-baja-cloud"]

@@ -1,4 +1,4 @@
-use crate::{ArcString, ArcVec, database::Database};
+use crate::{ArcString, database::Database};
 use actix_web::{
     HttpRequest, Responder, post,
     web::{self, Data},
@@ -8,16 +8,24 @@ use serde::{Deserialize, Serialize};
 // use serde_json::json;
 use tokio::sync::Mutex;
 use umya_spreadsheet::{Worksheet, reader, writer};
-// use uuid::Uuid;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CustomerInfo {
-    order_id: Option<ArcString>,
+    pub order_id: Option<ArcString>,
     email: ArcString,
     phone: Option<ArcString>,
     name: ArcString,
     sub_team: Option<ArcString>,
-    shipping_details: ArcString,
+    order_total: f32,
+    ship_full_name: ArcString,
+    ship_street_addr: ArcString,
+    ship_unit_number: Option<ArcString>,
+    ship_city: ArcString,
+    ship_province: ArcString,
+    ship_country: ArcString,
+    ship_postal_code: ArcString,
+    ship_phone: ArcString,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -32,7 +40,8 @@ pub struct OrderItem {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OrderRequest {
     customer_info: CustomerInfo,
-    cart_items: ArcVec<OrderItem>,
+    cart_items: Vec<OrderItem>,
+    order_id: Option<ArcString>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -45,7 +54,7 @@ pub struct OrderSuccess {
 #[post("/recieve_order")]
 pub async fn recieve_order(
     data_state: Data<Mutex<Database>>,
-    order_request: web::Json<OrderRequest>,
+    mut order_request: web::Json<OrderRequest>,
     req: HttpRequest,
 ) -> impl Responder {
     log_incoming_w_x("POST", "/shop/recieve_order", req);
@@ -62,6 +71,8 @@ pub async fn recieve_order(
             });
         }
     }
+    order_request.give_uuid();
+
     database.write_customer(&order_request.customer_info);
 
     let mut book = reader::xlsx::lazy_read(&database.connection.as_ref().unwrap()).unwrap();
@@ -73,8 +84,8 @@ pub async fn recieve_order(
     let orders = order_request.cart_items.clone();
 
     // Writes all orders in the vec to the sheet
-    for order in orders.as_ref().iter() {
-        order_row_insert += database.write_order(order, orders_sheet, &order_row_insert);
+    for order in orders {
+        order_row_insert += database.write_order(&order, orders_sheet, &order_row_insert);
     }
 
     // save to workbook
@@ -130,7 +141,6 @@ impl Database {
         orders_sheet
             .get_cell_mut(format!("E{}", row_insert))
             .set_value_number(order.price);
-
         1
     }
 
@@ -183,11 +193,64 @@ impl Database {
             );
 
         // shipping
+
+        // shipping full name
         customer_sheet
             .get_cell_mut(format!("F{}", customer_row_insert))
-            .set_value_string(customer_info.shipping_details.as_ref().to_string());
+            .set_value_string(customer_info.ship_full_name.as_ref().to_string());
+
+        // shipping street address
+        customer_sheet
+            .get_cell_mut(format!("G{}", customer_row_insert))
+            .set_value_string(customer_info.ship_street_addr.as_ref().to_string());
+
+        customer_sheet
+            .get_cell_mut(format!("H{}", customer_row_insert))
+            .set_value_string(
+                customer_info
+                    .ship_unit_number
+                    .as_ref()
+                    .map(|s| s.to_string())
+                    .unwrap_or_default(),
+            );
+
+        customer_sheet
+            .get_cell_mut(format!("I{}", customer_row_insert))
+            .set_value_string(customer_info.ship_city.as_ref().to_string());
+
+        customer_sheet
+            .get_cell_mut(format!("J{}", customer_row_insert))
+            .set_value_string(customer_info.ship_province.as_ref().to_string());
+
+        customer_sheet
+            .get_cell_mut(format!("K{}", customer_row_insert))
+            .set_value_string(customer_info.ship_country.as_ref().to_string());
+
+        customer_sheet
+            .get_cell_mut(format!("L{}", customer_row_insert))
+            .set_value_string(customer_info.ship_postal_code.as_ref().to_string());
+
+        customer_sheet
+            .get_cell_mut(format!("M{}", customer_row_insert))
+            .set_value_string(customer_info.ship_phone.as_ref().to_string());
 
         // save to workbook
         writer::xlsx::write(&book, self.connection.as_ref().unwrap().as_path()).unwrap();
+    }
+}
+
+impl OrderRequest {
+    pub fn give_uuid(&mut self) {
+        if self.order_id == None {
+            let new_uuid: ArcString = Uuid::new_v4().to_string().into();
+
+            self.order_id = Some(new_uuid.clone());
+
+            self.customer_info.order_id = Some(new_uuid.clone());
+
+            for order_item in self.cart_items.iter_mut() {
+                order_item.order_id = Some(new_uuid.clone());
+            }
+        }
     }
 }
