@@ -196,16 +196,17 @@ impl Database {
 
         // shipping full name
         customer_sheet
-            .get_cell_mut(format!("F{}", customer_row_insert))
+            .get_cell_mut(format!("G{}", customer_row_insert))
             .set_value_string(customer_info.ship_full_name.as_ref().to_string());
 
         // shipping street address
         customer_sheet
-            .get_cell_mut(format!("G{}", customer_row_insert))
+            .get_cell_mut(format!("H{}", customer_row_insert))
             .set_value_string(customer_info.ship_street_addr.as_ref().to_string());
 
+        // shipping unit number
         customer_sheet
-            .get_cell_mut(format!("H{}", customer_row_insert))
+            .get_cell_mut(format!("I{}", customer_row_insert))
             .set_value_string(
                 customer_info
                     .ship_unit_number
@@ -214,24 +215,29 @@ impl Database {
                     .unwrap_or_default(),
             );
 
-        customer_sheet
-            .get_cell_mut(format!("I{}", customer_row_insert))
-            .set_value_string(customer_info.ship_city.as_ref().to_string());
-
+        // shipping city
         customer_sheet
             .get_cell_mut(format!("J{}", customer_row_insert))
-            .set_value_string(customer_info.ship_province.as_ref().to_string());
+            .set_value_string(customer_info.ship_city.as_ref().to_string());
 
+        // shipping provice
         customer_sheet
             .get_cell_mut(format!("K{}", customer_row_insert))
-            .set_value_string(customer_info.ship_country.as_ref().to_string());
+            .set_value_string(customer_info.ship_province.as_ref().to_string());
 
+        // shipping country
         customer_sheet
             .get_cell_mut(format!("L{}", customer_row_insert))
-            .set_value_string(customer_info.ship_postal_code.as_ref().to_string());
+            .set_value_string(customer_info.ship_country.as_ref().to_string());
 
+        // shipping postal code
         customer_sheet
             .get_cell_mut(format!("M{}", customer_row_insert))
+            .set_value_string(customer_info.ship_postal_code.as_ref().to_string());
+
+        // shipping phone number
+        customer_sheet
+            .get_cell_mut(format!("N{}", customer_row_insert))
             .set_value_string(customer_info.ship_phone.as_ref().to_string());
 
         // save to workbook
