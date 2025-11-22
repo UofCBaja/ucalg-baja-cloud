@@ -7,7 +7,7 @@ name: Build Container & Upload
 # whenever we create a pull request.
 # other examples: [push] and [pull_request, push]
 on:
-  pull_request:
+  # pull_request:
 
   push:
     branches:
@@ -59,14 +59,14 @@ jobs:
 
       - name: Upload to Forgejo with Git SHA tag
         run: |
-          docker tag darkicewolf50/ucalg-baja-cloud:latest forge.ucalgarybaja.ca/UCalgary_Baja/ucalg-baja-cloud:${{ github.sha }}
-          docker push forge.ucalgarybaja.ca/UCalgary_Baja/ucalg-baja-cloud:${{ github.sha }}
+          docker tag darkicewolf50/ucalg-baja-cloud:latest forge.ucalgarybaja.ca/ucalgary-baja/ucalg-baja-cloud:${{ github.sha }}
+          docker push forge.ucalgarybaja.ca/ucalgary-baja/ucalg-baja-cloud:${{ github.sha }}
         if: ${{ steps.forgejo-login.outcome == 'success' && steps.docker-build.outcome == 'success' }}
 
       - name: Upload to Forgejo
         run: |
-          docker tag darkicewolf50/ucalg-baja-cloud:latest forge.ucalgarybaja.ca/UCalgary_Baja/ucalg-baja-cloud:latest
-          docker push forge.ucalgarybaja.ca/UCalgary_Baja/ucalg-baja-cloud:latest
+          docker tag darkicewolf50/ucalg-baja-cloud:latest forge.ucalgarybaja.ca/ucalgary-baja/ucalg-baja-cloud:latest
+          docker push forge.ucalgarybaja.ca/ucalgary-baja/ucalg-baja-cloud:latest
         if: ${{ steps.forgejo-login.outcome == 'success' && steps.docker-build.outcome == 'success' }}
 
       

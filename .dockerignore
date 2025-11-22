@@ -1,3 +1,4 @@
 Database/
 .forgejo/
 target/
+.gitnore

@@ -1,7 +1,5 @@
-
-
-
 - name: HERO-2020 HOODIES 
+  category: heavy-wear
   sizes_available: 
     - XS
     - S
@@ -13,5 +11,10 @@
     - Black
     - White
     - Grey
+  description: Test123
   url_image:
     - https://picsum.photos/200
+  additional_materials: 143 test
+  material: wool
+  cleaning: please clean me
+  size_guide_img_url: https://picsum.photos/200/300

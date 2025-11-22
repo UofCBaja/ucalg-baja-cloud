@@ -1,14 +1,30 @@
 use actix_cors::Cors;
 use actix_web::{App, HttpServer, web};
+use tokio::sync::Mutex;
 
-use darkicewolf50_actix_setup::health_check;
+use ucalg_baja_cloud::ApiDoc;
+use ucalg_baja_cloud::database;
 use ucalg_baja_cloud::merch_shop;
 use ucalg_baja_cloud::sponsors::get_sponsors;
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    println!("Running on port 6526");
-    HttpServer::new(|| {
+    #[cfg(debug_assertions)]
+    {
+        println!("Debug mode active!");
+        println!("Running on port http://localhost:6526");
+    }
+
+    #[cfg(not(debug_assertions))]
+    {
+        println!("Running on port 6526");
+    }
+
+    let database = web::Data::new(Mutex::new(database::Database::new()));
+
+    HttpServer::new(move || {
         App::new()
             .wrap(
                 Cors::default()
@@ -20,12 +36,18 @@ async fn main() -> std::io::Result<()> {
                     .allow_any_header(), // Optionally enable sending cookies, etc.
                                          //.supports_credentials()
             )
-            .service(health_check)
+            .app_data(database.clone())
+            .service(darkicewolf50_actix_setup::health_check_swagger)
             .service(get_sponsors)
             .service(
                 web::scope("/shop")
                     .service(merch_shop::recieve_order)
                     .service(merch_shop::get_merch),
+            )
+            // accessable at /swagger/
+            // swagger/OpenAPI docs
+            .service(
+                SwaggerUi::new("/swagger/{_:.*}").url("/api-docs/openapi.json", ApiDoc::openapi()),
             )
     })
     .bind(("0.0.0.0", 6526))?
