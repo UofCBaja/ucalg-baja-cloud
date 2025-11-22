@@ -69,20 +69,21 @@ impl Database {
         custmer_sheet.get_cell_mut("C1").set_value("Phone");
         custmer_sheet.get_cell_mut("D1").set_value("Name");
         custmer_sheet.get_cell_mut("E1").set_value("Subteam");
+        custmer_sheet.get_cell_mut("F1").set_value("Order Total");
         custmer_sheet
-            .get_cell_mut("F1")
+            .get_cell_mut("G1")
             .set_value("Shipping Details");
-        custmer_sheet.get_cell_mut("G1").set_value("Full Name");
-        custmer_sheet.get_cell_mut("H1").set_value("Street Address");
-        custmer_sheet.get_cell_mut("I1").set_value("Unit Number");
-        custmer_sheet.get_cell_mut("J1").set_value("City");
-        custmer_sheet.get_cell_mut("K1").set_value("Province");
+        custmer_sheet.get_cell_mut("H1").set_value("Full Name");
+        custmer_sheet.get_cell_mut("I1").set_value("Street Address");
+        custmer_sheet.get_cell_mut("J1").set_value("Unit Number");
+        custmer_sheet.get_cell_mut("K1").set_value("City");
+        custmer_sheet.get_cell_mut("L1").set_value("Province");
         custmer_sheet
-            .get_cell_mut("L1")
+            .get_cell_mut("M1")
             .set_value("Country Default Canada");
-        custmer_sheet.get_cell_mut("M1").set_value("Postal Code");
+        custmer_sheet.get_cell_mut("N1").set_value("Postal Code");
         custmer_sheet
-            .get_cell_mut("N1")
+            .get_cell_mut("O1")
             .set_value("Phone Number (shipping)");
 
         match writer::xlsx::write(&book, self.connection.as_ref().unwrap().clone().as_path()) {

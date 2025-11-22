@@ -73,8 +73,6 @@ pub async fn recieve_order(
     }
     order_request.give_uuid();
 
-    database.write_customer(&order_request.customer_info);
-
     let mut book = reader::xlsx::lazy_read(&database.connection.as_ref().unwrap()).unwrap();
 
     let orders_sheet = book.get_sheet_by_name_mut("orders").unwrap();
@@ -83,10 +81,17 @@ pub async fn recieve_order(
     // Customer Info Part of incoming order
     let orders = order_request.cart_items.clone();
 
+    let mut order_total: f32 = 0.0;
+
     // Writes all orders in the vec to the sheet
     for order in orders {
         order_row_insert += database.write_order(&order, orders_sheet, &order_row_insert);
+        order_total += order.price;
     }
+
+    order_total *= 1.05;
+
+    database.write_customer(&order_request.customer_info, &order_total);
 
     // save to workbook
     writer::xlsx::write(&book, &database.connection.as_ref().unwrap()).unwrap();
@@ -144,7 +149,7 @@ impl Database {
         1
     }
 
-    pub fn write_customer(&self, customer_info: &CustomerInfo) {
+    pub fn write_customer(&self, customer_info: &CustomerInfo, order_total: &f32) {
         let mut book =
             reader::xlsx::lazy_read(self.connection.as_ref().unwrap().as_path()).unwrap();
 
@@ -192,21 +197,26 @@ impl Database {
                     .unwrap_or_default(),
             );
 
+        // Order Total
+        customer_sheet
+            .get_cell_mut(format!("F{}", customer_row_insert))
+            .set_value_number(*order_total);
+
         // shipping
 
         // shipping full name
         customer_sheet
-            .get_cell_mut(format!("G{}", customer_row_insert))
+            .get_cell_mut(format!("H{}", customer_row_insert))
             .set_value_string(customer_info.ship_full_name.as_ref().to_string());
 
         // shipping street address
         customer_sheet
-            .get_cell_mut(format!("H{}", customer_row_insert))
+            .get_cell_mut(format!("I{}", customer_row_insert))
             .set_value_string(customer_info.ship_street_addr.as_ref().to_string());
 
         // shipping unit number
         customer_sheet
-            .get_cell_mut(format!("I{}", customer_row_insert))
+            .get_cell_mut(format!("J{}", customer_row_insert))
             .set_value_string(
                 customer_info
                     .ship_unit_number
@@ -217,27 +227,27 @@ impl Database {
 
         // shipping city
         customer_sheet
-            .get_cell_mut(format!("J{}", customer_row_insert))
+            .get_cell_mut(format!("K{}", customer_row_insert))
             .set_value_string(customer_info.ship_city.as_ref().to_string());
 
         // shipping provice
         customer_sheet
-            .get_cell_mut(format!("K{}", customer_row_insert))
+            .get_cell_mut(format!("L{}", customer_row_insert))
             .set_value_string(customer_info.ship_province.as_ref().to_string());
 
         // shipping country
         customer_sheet
-            .get_cell_mut(format!("L{}", customer_row_insert))
+            .get_cell_mut(format!("M{}", customer_row_insert))
             .set_value_string(customer_info.ship_country.as_ref().to_string());
 
         // shipping postal code
         customer_sheet
-            .get_cell_mut(format!("M{}", customer_row_insert))
+            .get_cell_mut(format!("N{}", customer_row_insert))
             .set_value_string(customer_info.ship_postal_code.as_ref().to_string());
 
         // shipping phone number
         customer_sheet
-            .get_cell_mut(format!("N{}", customer_row_insert))
+            .get_cell_mut(format!("O{}", customer_row_insert))
             .set_value_string(customer_info.ship_phone.as_ref().to_string());
 
         // save to workbook
