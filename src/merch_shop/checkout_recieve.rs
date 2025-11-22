@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{ArcString, database::Database};
 use actix_web::{
     HttpRequest, Responder, post,
@@ -23,7 +25,7 @@ pub struct CustomerInfo {
     ship_unit_number: Option<ArcString>,
     ship_city: ArcString,
     ship_province: ArcString,
-    ship_country: ArcString,
+    ship_country: Option<ArcString>,
     ship_postal_code: ArcString,
     ship_phone: ArcString,
 }
@@ -42,6 +44,7 @@ pub struct OrderRequest {
     customer_info: CustomerInfo,
     cart_items: Vec<OrderItem>,
     order_id: Option<ArcString>,
+    coupon_code: Option<ArcString>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -91,7 +94,11 @@ pub async fn recieve_order(
 
     order_total *= 1.05;
 
-    database.write_customer(&order_request.customer_info, &order_total);
+    database.write_customer(
+        &order_request.customer_info,
+        &order_total,
+        &order_request.coupon_code,
+    );
 
     // save to workbook
     writer::xlsx::write(&book, &database.connection.as_ref().unwrap()).unwrap();
@@ -149,7 +156,12 @@ impl Database {
         1
     }
 
-    pub fn write_customer(&self, customer_info: &CustomerInfo, order_total: &f32) {
+    pub fn write_customer(
+        &self,
+        customer_info: &CustomerInfo,
+        order_total: &f32,
+        coupon: &Option<ArcString>,
+    ) {
         let mut book =
             reader::xlsx::lazy_read(self.connection.as_ref().unwrap().as_path()).unwrap();
 
@@ -202,21 +214,26 @@ impl Database {
             .get_cell_mut(format!("F{}", customer_row_insert))
             .set_value_number(*order_total);
 
+        // Coupon if input
+        customer_sheet
+            .get_cell_mut(format!("G{}", customer_row_insert))
+            .set_value(coupon.clone().unwrap_or_default().to_string());
+
         // shipping
 
         // shipping full name
         customer_sheet
-            .get_cell_mut(format!("H{}", customer_row_insert))
+            .get_cell_mut(format!("I{}", customer_row_insert))
             .set_value_string(customer_info.ship_full_name.as_ref().to_string());
 
         // shipping street address
         customer_sheet
-            .get_cell_mut(format!("I{}", customer_row_insert))
+            .get_cell_mut(format!("J{}", customer_row_insert))
             .set_value_string(customer_info.ship_street_addr.as_ref().to_string());
 
         // shipping unit number
         customer_sheet
-            .get_cell_mut(format!("J{}", customer_row_insert))
+            .get_cell_mut(format!("K{}", customer_row_insert))
             .set_value_string(
                 customer_info
                     .ship_unit_number
@@ -227,27 +244,33 @@ impl Database {
 
         // shipping city
         customer_sheet
-            .get_cell_mut(format!("K{}", customer_row_insert))
+            .get_cell_mut(format!("L{}", customer_row_insert))
             .set_value_string(customer_info.ship_city.as_ref().to_string());
 
         // shipping provice
         customer_sheet
-            .get_cell_mut(format!("L{}", customer_row_insert))
+            .get_cell_mut(format!("M{}", customer_row_insert))
             .set_value_string(customer_info.ship_province.as_ref().to_string());
 
         // shipping country
         customer_sheet
-            .get_cell_mut(format!("M{}", customer_row_insert))
-            .set_value_string(customer_info.ship_country.as_ref().to_string());
+            .get_cell_mut(format!("N{}", customer_row_insert))
+            .set_value_string(
+                customer_info
+                    .ship_country
+                    .clone()
+                    .unwrap_or_else(|| Arc::<str>::from("Canada"))
+                    .to_string(),
+            );
 
         // shipping postal code
         customer_sheet
-            .get_cell_mut(format!("N{}", customer_row_insert))
+            .get_cell_mut(format!("O{}", customer_row_insert))
             .set_value_string(customer_info.ship_postal_code.as_ref().to_string());
 
         // shipping phone number
         customer_sheet
-            .get_cell_mut(format!("O{}", customer_row_insert))
+            .get_cell_mut(format!("P{}", customer_row_insert))
             .set_value_string(customer_info.ship_phone.as_ref().to_string());
 
         // save to workbook
