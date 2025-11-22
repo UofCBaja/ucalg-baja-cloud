@@ -39,10 +39,6 @@ impl Database {
     }
 
     pub fn database_initialize_xl(&mut self) -> Result<(), String> {
-        if self.check_path_xl().unwrap() {
-            return Ok(());
-        }
-
         println!("Creating New Sheet");
 
         let mut book = umya_spreadsheet::new_file_empty_worksheet();
