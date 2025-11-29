@@ -49,11 +49,11 @@ impl Database {
         };
 
         order_sheet.get_cell_mut("A1").set_value("Order Id");
-        order_sheet.get_cell_mut("A1").set_value("Order Id");
-        order_sheet.get_cell_mut("B1").set_value("Email");
-        order_sheet.get_cell_mut("C1").set_value("Phone");
-        order_sheet.get_cell_mut("D1").set_value("Name");
-        order_sheet.get_cell_mut("E1").set_value("Subteam");
+        order_sheet.get_cell_mut("B1").set_value("Item Id");
+        order_sheet.get_cell_mut("C1").set_value("Size");
+        order_sheet.get_cell_mut("D1").set_value("Quantity");
+        order_sheet.get_cell_mut("E1").set_value("Colour");
+        order_sheet.get_cell_mut("F1").set_value("Price");
 
         let custmer_sheet = match book.new_sheet("customer_info") {
             Ok(p) => p,
@@ -82,6 +82,9 @@ impl Database {
         custmer_sheet
             .get_cell_mut("P1")
             .set_value("Phone Number (shipping)");
+        custmer_sheet
+            .get_cell_mut("Q1")
+            .set_value("Additional Notes");
 
         match writer::xlsx::write(&book, self.connection.as_ref().unwrap().clone().as_path()) {
             Ok(_) => (),

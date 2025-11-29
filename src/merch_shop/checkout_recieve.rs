@@ -20,20 +20,22 @@ pub struct CustomerInfo {
     name: ArcString,
     sub_team: Option<ArcString>,
     order_total: f32,
-    ship_full_name: ArcString,
-    ship_street_addr: ArcString,
+    ship_full_name: Option<ArcString>,
+    ship_street_addr: Option<ArcString>,
     ship_unit_number: Option<ArcString>,
-    ship_city: ArcString,
-    ship_province: ArcString,
+    ship_city: Option<ArcString>,
+    ship_province: Option<ArcString>,
     ship_country: Option<ArcString>,
-    ship_postal_code: ArcString,
-    ship_phone: ArcString,
+    ship_postal_code: Option<ArcString>,
+    ship_phone: Option<ArcString>,
+    additional_notes: Option<ArcString>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OrderItem {
     order_id: Option<ArcString>,
     item_id: ArcString,
+    colour: Option<ArcString>,
     size: Option<ArcString>,
     quantity: u8,
     price: f32,
@@ -149,9 +151,20 @@ impl Database {
             .get_cell_mut(format!("D{}", row_insert))
             .set_value_number(order.quantity);
 
-        // price
+        // colour
         orders_sheet
             .get_cell_mut(format!("E{}", row_insert))
+            .set_value_string(
+                order
+                    .colour
+                    .as_ref()
+                    .map(|s| s.to_string())
+                    .unwrap_or_default(),
+            );
+
+        // price
+        orders_sheet
+            .get_cell_mut(format!("F{}", row_insert))
             .set_value_number(order.price);
         1
     }
@@ -224,12 +237,24 @@ impl Database {
         // shipping full name
         customer_sheet
             .get_cell_mut(format!("I{}", customer_row_insert))
-            .set_value_string(customer_info.ship_full_name.as_ref().to_string());
+            .set_value_string(
+                customer_info
+                    .ship_full_name
+                    .as_ref()
+                    .map(|s| s.to_string())
+                    .unwrap_or_default(),
+            );
 
         // shipping street address
         customer_sheet
             .get_cell_mut(format!("J{}", customer_row_insert))
-            .set_value_string(customer_info.ship_street_addr.as_ref().to_string());
+            .set_value_string(
+                customer_info
+                    .ship_street_addr
+                    .as_ref()
+                    .map(|s| s.to_string())
+                    .unwrap_or_default(),
+            );
 
         // shipping unit number
         customer_sheet
@@ -245,12 +270,24 @@ impl Database {
         // shipping city
         customer_sheet
             .get_cell_mut(format!("L{}", customer_row_insert))
-            .set_value_string(customer_info.ship_city.as_ref().to_string());
+            .set_value_string(
+                customer_info
+                    .ship_city
+                    .as_ref()
+                    .map(|s| s.to_string())
+                    .unwrap_or_default(),
+            );
 
         // shipping provice
         customer_sheet
             .get_cell_mut(format!("M{}", customer_row_insert))
-            .set_value_string(customer_info.ship_province.as_ref().to_string());
+            .set_value_string(
+                customer_info
+                    .ship_province
+                    .as_ref()
+                    .map(|s| s.to_string())
+                    .unwrap_or_default(),
+            );
 
         // shipping country
         customer_sheet
@@ -266,12 +303,34 @@ impl Database {
         // shipping postal code
         customer_sheet
             .get_cell_mut(format!("O{}", customer_row_insert))
-            .set_value_string(customer_info.ship_postal_code.as_ref().to_string());
+            .set_value_string(
+                customer_info
+                    .ship_postal_code
+                    .as_ref()
+                    .map(|s| s.to_string())
+                    .unwrap_or_default(),
+            );
 
         // shipping phone number
         customer_sheet
             .get_cell_mut(format!("P{}", customer_row_insert))
-            .set_value_string(customer_info.ship_phone.as_ref().to_string());
+            .set_value_string(
+                customer_info
+                    .ship_phone
+                    .as_ref()
+                    .map(|s| s.to_string())
+                    .unwrap_or_default(),
+            );
+
+        customer_sheet
+            .get_cell_mut(format!("Q{}", customer_row_insert))
+            .set_value_string(
+                customer_info
+                    .additional_notes
+                    .as_ref()
+                    .map(|s| s.to_string())
+                    .unwrap_or_default(),
+            );
 
         // save to workbook
         writer::xlsx::write(&book, self.connection.as_ref().unwrap().as_path()).unwrap();

@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-actix-web = "4.12.0"
+actix-web = "4.12.1"
 actix-cors = "0.7.1"
 tokio = { version = "1.48.0", features = ["sync", "macros"] }
 serde = { version = "1.0.227", features = ["derive", "rc"] }
@@ -12,16 +12,12 @@ serde_json = "1.0.145"
 serde_yaml_bw = "2.5.1"
 uuid = { version = "1.18.1", features = ["v4"] }
 umya-spreadsheet = "2.3.3"
-<<<<<<< HEAD
-darkicewolf50-actix-setup = { version = "0.1.3", git = "https://forge.ucalgarybaja.ca/darkicewolf50/darkicewolf50-actix-setup.git" }
-=======
 darkicewolf50-actix-setup = { version = "0.1.6", git = "https://forge.ucalgarybaja.ca/darkicewolf50/darkicewolf50-actix-setup.git", features = [
     "full"
 ] }
 utoipa = { version = "5.4.0", features = ["actix_extras"] }
 utoipa-swagger-ui = { version = "9", features = ["actix-web", "reqwest"] }
 utoipa-actix-web = "0.1.2"
->>>>>>> merch
 
 [profile.release]
 debug = false
