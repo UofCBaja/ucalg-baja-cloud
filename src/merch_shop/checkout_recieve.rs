@@ -96,10 +96,12 @@ pub async fn recieve_order(
 
     order_total *= 1.05;
 
+    // let customer_sheet = book.get_sheet_by_name("customer_info").unwrap();
     database.write_customer(
         &order_request.customer_info,
         &order_total,
         &order_request.coupon_code,
+        book.get_sheet_by_name_mut("customer_info").unwrap(),
     );
 
     // save to workbook
@@ -174,11 +176,8 @@ impl Database {
         customer_info: &CustomerInfo,
         order_total: &f32,
         coupon: &Option<ArcString>,
+        customer_sheet: &mut Worksheet,
     ) {
-        let mut book =
-            reader::xlsx::lazy_read(self.connection.as_ref().unwrap().as_path()).unwrap();
-
-        let customer_sheet = book.get_sheet_by_name_mut("customer_info").unwrap();
         // Finds "newest row"
         let customer_row_insert = customer_sheet.get_highest_row() + 1;
 
@@ -331,9 +330,6 @@ impl Database {
                     .map(|s| s.to_string())
                     .unwrap_or_default(),
             );
-
-        // save to workbook
-        writer::xlsx::write(&book, self.connection.as_ref().unwrap().as_path()).unwrap();
     }
 }
 
