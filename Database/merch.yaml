@@ -12,7 +12,7 @@
     - White
     - Grey
   description: Test123
-  url_image:
+  url_images:
     - https://picsum.photos/200
   additional_materials: 143 test
   material: wool

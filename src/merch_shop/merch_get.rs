@@ -16,7 +16,7 @@ struct MerchItem {
     price: f32,
     colours: Vec<ArcString>,
     description: ArcString,
-    url_image: ArcVec<ArcString>,
+    url_images: ArcVec<ArcString>,
     additional_materials: ArcString,
     material: ArcString,
     cleaning: ArcString,
