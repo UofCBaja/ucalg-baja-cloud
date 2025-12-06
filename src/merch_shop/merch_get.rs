@@ -17,7 +17,7 @@ struct MerchItem {
     colours: Vec<ArcString>,
     description: ArcString,
     url_images: ArcVec<ArcString>,
-    additional_materials: ArcString,
+    additional_details: ArcString,
     material: ArcString,
     cleaning: ArcString,
     size_guide_img_url: ArcString,
