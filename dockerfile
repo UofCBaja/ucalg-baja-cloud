@@ -28,8 +28,8 @@ RUN apk add --no-cache \
     musl \
     libffi
     
-WORKDIR /ucalg-baja-cloud
-COPY --from=builder /ucalg-baja-cloud/target/release/ucalg-baja-cloud .
+WORKDIR  /ucalg_baja_cloud
+COPY --from=builder  /ucalg_baja_cloud/target/release/ucalg-baja-cloud .
     
 EXPOSE 6525
 CMD ["./ucalg-baja-cloud"]
