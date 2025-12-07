@@ -17,13 +17,14 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu
-    if: ${{ env.FORGEJO_EVENT_NAME != 'push' || startsWith(env.FORGEJO_REF, 'refs/heads/') }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Check
+        if: ${{ FORGEJO_EVENT_NAME != 'push' || startsWith(FORGEJO_REF, 'refs/heads/') }}
         run: cargo check
 
       - name: Doc Tests
+        if: ${{ FORGEJO_EVENT_NAME != 'push' || startsWith(FORGEJO_REF, 'refs/heads/') }}
         run: cargo test --doc --no-fail-fast --quiet
