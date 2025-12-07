@@ -17,7 +17,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu
-    if: ${{ github.event_name == 'pull_request' || github.ref != 'refs/pull/' }}
+    if: ${{ github.event_name != 'pull_request' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
