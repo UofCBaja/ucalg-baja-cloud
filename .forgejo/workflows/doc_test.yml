@@ -22,6 +22,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Check
+        if: github.event_name == 'push' && github.event.pull_request == null || github.event_name == 'pull_request'
         run: cargo check
 
       - name: Doc Tests
