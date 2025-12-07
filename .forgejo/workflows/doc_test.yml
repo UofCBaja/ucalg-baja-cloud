@@ -21,10 +21,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Skip push events for PRs
+        run: |
+          if [ "$FORGEJO_EVENT_NAME" = "push" ] && [[ "$FORGEJO_REF" != refs/heads/* ]]; then
+            echo "Skipping steps for push that is part of a PR"
+            exit 0
+          fi
+
       - name: Check
-        if: ${{ FORGEJO_EVENT_NAME != 'push' || startsWith(FORGEJO_REF, 'refs/heads/') }}
         run: cargo check
 
       - name: Doc Tests
-        if: ${{ FORGEJO_EVENT_NAME != 'push' || startsWith(FORGEJO_REF, 'refs/heads/') }}
         run: cargo test --doc --no-fail-fast --quiet
