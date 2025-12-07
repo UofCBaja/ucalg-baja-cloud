@@ -23,9 +23,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Check
-        if: env.CI_COMMIT_REF_NAME == 'master'
         run: cargo check
 
       - name: Doc Tests
-        if: env.CI_COMMIT_REF_NAME == 'master'
         run: cargo test --doc --no-fail-fast --quiet
