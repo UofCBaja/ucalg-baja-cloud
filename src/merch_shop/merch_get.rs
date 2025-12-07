@@ -1,4 +1,4 @@
-use std::fs;
+use std::{env, fs};
 
 use actix_web::{HttpRequest, Responder, get, web};
 use darkicewolf50_actix_setup::log_incoming_w_x;
@@ -27,7 +27,7 @@ struct MerchItem {
 pub async fn get_merch(req: HttpRequest) -> impl Responder {
     log_incoming_w_x("GET", "/shop/merch", req);
 
-    let sponsor_get_path = match env::var("MERCH_ITEMS_AVAILABLE") {
+    let sponsor_get_path = match env::var("MERCH_ITEMS_AVAILABLE_DB") {
         Ok(path_value) => path_value,
         Err(_) => "./Database/merch.yaml".to_string(),
     };
