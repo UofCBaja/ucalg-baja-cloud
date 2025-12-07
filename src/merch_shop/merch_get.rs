@@ -27,7 +27,12 @@ struct MerchItem {
 pub async fn get_merch(req: HttpRequest) -> impl Responder {
     log_incoming_w_x("GET", "/shop/merch", req);
 
-    let yaml = fs::read_to_string("./Database/merch.yaml").unwrap_or_else(|_| "".to_string());
+    let sponsor_get_path = match env::var("MERCH_ITEMS_AVAILABLE") {
+        Ok(path_value) => path_value,
+        Err(_) => "./Database/merch.yaml".to_string(),
+    };
+
+    let yaml = fs::read_to_string(sponsor_get_path).unwrap_or_else(|_| "".to_string());
 
     let yaml: ArcVec<MerchItem> = serde_yaml_bw::from_str(&yaml)
         .unwrap_or_else(|_| vec![])
