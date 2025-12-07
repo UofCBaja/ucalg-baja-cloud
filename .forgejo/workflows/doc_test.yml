@@ -21,15 +21,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Skip push events for PRs
+      - name: Determine if PR to skip rest
+        id: skip
         run: |
           if [ "$FORGEJO_EVENT_NAME" = "push" ] && [[ "$FORGEJO_REF" != refs/heads/* ]]; then
-            echo "Skipping steps for push that is part of a PR"
-            exit 0
+            echo "skip=true" >> $FORGEJO_OUTPUT
+          else
+            echo "skip=false" >> $FORGEJO_OUTPUT
           fi
 
+      # Only run if not skipping
       - name: Check
+        if: steps.skip.outputs.skip != 'true'
         run: cargo check
 
       - name: Doc Tests
+        if: steps.skip.outputs.skip != 'true'
         run: cargo test --doc --no-fail-fast --quiet
