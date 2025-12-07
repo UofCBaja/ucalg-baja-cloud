@@ -1,4 +1,7 @@
-use std::path::{Path, PathBuf};
+use std::{
+    env,
+    path::{Path, PathBuf},
+};
 use umya_spreadsheet::writer;
 
 pub struct Database {
@@ -7,13 +10,16 @@ pub struct Database {
 
 impl Database {
     pub fn new() -> Database {
-        let xl_path = Path::new("./Database/Merch.xlsx");
-
-        let mut database = Database {
-            connection: Some(xl_path.into()),
+        let xl_path = match env::var("MERCH_DATABASE") {
+            Ok(path_value) => PathBuf::from(path_value),
+            Err(_) => PathBuf::from("./Database/Merch.xlsx"),
         };
 
-        if !Path::exists(&xl_path) {
+        let mut database = Database {
+            connection: Some(xl_path),
+        };
+
+        if !&database.connection.clone().unwrap().exists() {
             let _ = database.database_initialize_xl();
 
             return database;

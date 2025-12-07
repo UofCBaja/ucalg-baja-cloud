@@ -14,7 +14,7 @@ async fn main() -> std::io::Result<()> {
     #[cfg(debug_assertions)]
     {
         println!("Debug mode active!");
-        println!("Running on port http://localhost:6526");
+        println!("Running at http://localhost:6526");
     }
 
     #[cfg(not(debug_assertions))]
