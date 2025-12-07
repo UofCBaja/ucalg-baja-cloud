@@ -1,0 +1,4 @@
+Database/
+.forgejo/
+target/
+.gitnore

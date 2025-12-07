@@ -5,7 +5,9 @@ services:
     # restart: unless-stopped
     build: . # do not include in delpoyment version
     ports:
-      - 8000:6525
+      - 6525:6525
+    environment:
+      MERCH_DATABASE: /app/data/Merch.xlsx
+      SPONSOR_DATABASE: /app/data/sponsorship.yaml
     volumes:
-      - ./database:/database
-      - ./blogs:/blogs
+      - ./Database:./Database

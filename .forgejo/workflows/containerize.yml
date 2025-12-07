@@ -7,7 +7,7 @@ name: Build Container & Upload
 # whenever we create a pull request.
 # other examples: [push] and [pull_request, push]
 on:
-  pull_request:
+  # pull_request:
 
   push:
     branches:
